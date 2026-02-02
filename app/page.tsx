@@ -58,6 +58,9 @@ export default function Home() {
             GitHub Issue URL Shortener
           </h1>
           <p className="text-gray-400">Secure, serverless short links using GitHub Issues</p>
+          <p className="text-xs text-gray-500 mt-2">
+            Format: https://johnson1205.github.io/short_url/&lt;issue_id_base62&gt;
+          </p>
         </div>
 
         <form onSubmit={handleShorten} className="space-y-6">
