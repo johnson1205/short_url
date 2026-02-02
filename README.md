@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Serverless URL Shortener Template
 
-## Getting Started
+[![Built with Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38B2AC)](https://tailwindcss.com/)
+[![GitHub Issues](https://img.shields.io/badge/Storage-GitHub%20Issues-181717)](https://github.com/features/issues)
 
-First, run the development server:
+A professional, lightweight **URL Shortener Template** that demonstrates the power of serverless architecture by using **GitHub Issues as a NoSQL database**.
+
+This project is designed as a **template** to showcase how to build functional, persistent web applications on static hosting platforms (like GitHub Pages) without needing a traditional backend or database server.
+
+---
+
+## 🚀 Key Features
+
+*   **Serverless Storage**: Revolutionary approach using GitHub Repository Issues to store URL mappings.
+*   **Zero-Cost Hosting**: Fully compatible with static hosting providers like GitHub Pages.
+*   **Secure Client-Side Logic**: Direct interaction with GitHub API from the browser using Personal Access Tokens (PAT).
+*   **Base62 Encoding**: Efficiently converts Issue IDs into concise, 6-character short codes.
+*   **Smart Redirection**: Implements a "Smart 404" strategy to handle dynamic routing on static servers.
+*   **Premium UI**: Built with modern Tailwind CSS v4, supporting Dark Mode and Glassmorphism aesthetics.
+
+## 🏗️ Technical Architecture
+
+### "GitHub Issues as a Database"
+Instead of connecting to MySQL, PostgreSQL, or MongoDB, this application treats a GitHub Repository as a database:
+1.  **Writes**: Creating a short link creates a new **Issue** in the target repository. The *Issue Body* stores the long URL.
+2.  **Reads**: The *Issue Number* serves as the unique ID. We convert this ID to a Base62 string (e.g., Issue #100 -> `1C`) to generate the short code.
+3.  **Lookup**: When a user visits a short link, the app decodes the string back to the Issue Number, fetches the Issue via GitHub API, and redirects to the URL found in the body.
+
+### Static Hosting Compatibility
+Since GitHub Pages handles static files, we cannot use dynamic server routes (like `/api/[code]`). instead, we rely on a **client-side 404 fallback**:
+*   Requests to `/short_url/1C` return `404.html`.
+*   Our custom `404` page parses the URL, detects the code `1C`, fetches the data, and performs the redirect.
+
+## 🛠️ Usage
+
+### Prerequisites
+*   A GitHub Account.
+*   A target repository (can be private or public) to create issues in.
+*   A **GitHub Personal Access Token** with `repo` scope.
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/johnson1205/short_url.git
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Deployment (GitHub Pages)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This template includes a pre-configured workflow for `gh-pages`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Update Config**: Ensure `next.config.js` has the correct `basePath` if deploying to a project page.
+2.  **Deploy**:
+    ```bash
+    npm run deploy
+    ```
+3.  **Activate**: Go to your Repo Settings -> Pages -> Source -> Select `gh-pages` branch.
 
-## Learn More
+## 📝 Configuration
 
-To learn more about Next.js, take a look at the following resources:
+To personalize this template, update the following constants in `lib/github.ts`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```typescript
+const OWNER = "your-username";
+const REPO = "your-storage-repo";
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📄 License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is open-source and available under the MIT License.
