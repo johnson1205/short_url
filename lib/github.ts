@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 
 const OWNER = "johnson1205";
-const REPO = "short_url";
+const REPO = "github_issue_url_shortener";
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const BASE = ALPHABET.length;
 

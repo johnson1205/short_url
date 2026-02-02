@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
-  basePath: "/short_url",
+  basePath: "/github_issue_url_shortener",
   images: {
     unoptimized: true,
   },

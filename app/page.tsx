@@ -33,7 +33,7 @@ export default function Home() {
       // Result = https://johnson1205.github.io/short_url/1e
       
       const origin = window.location.origin;
-      const basePath = "/short_url"; 
+      const basePath = "/github_issue_url_shortener"; 
       const finalUrl = `${origin}${basePath}/${code}`;
 
       setShortUrl(finalUrl);
@@ -59,7 +59,7 @@ export default function Home() {
           </h1>
           <p className="text-gray-400">Secure, serverless short links using GitHub Issues</p>
           <p className="text-xs text-gray-500 mt-2">
-            Format: https://johnson1205.github.io/short_url/&lt;issue_id_base62&gt;
+            Format: https://johnson1205.github.io/github_issue_url_shortener/&lt;issue_id_base62&gt;
           </p>
         </div>
 
