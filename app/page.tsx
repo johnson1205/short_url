@@ -55,7 +55,7 @@ export default function Home() {
       <main className="glass-panel w-full max-w-lg p-8 rounded-2xl animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
-            GitHub URL Shortener
+            GitHub Issue URL Shortener
           </h1>
           <p className="text-gray-400">Secure, serverless short links using GitHub Issues</p>
         </div>

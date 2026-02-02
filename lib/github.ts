@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 
 const OWNER = "johnson1205";
-const REPO = "database";
+const REPO = "short_url";
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const BASE = ALPHABET.length;
 
@@ -40,8 +40,9 @@ export async function createIssue(token: string, url: string): Promise<number> {
   return data.number;
 }
 
-export async function getURL(token: string, issueNumber: number): Promise<string> {
-  const octokit = new Octokit({ auth: token });
+export async function getURL(token: string = "", issueNumber: number): Promise<string> {
+  // If token is empty, Octokit makes unauthenticated requests (Public Read)
+  const octokit = new Octokit(token ? { auth: token } : {});
   try {
     const { data } = await octokit.rest.issues.get({
       owner: OWNER,
@@ -51,6 +52,9 @@ export async function getURL(token: string, issueNumber: number): Promise<string
     return data.body || ""; 
   } catch (error) {
     console.error("Error fetching issue:", error);
-    return "";
+    // Determine if we should throw to trigger UI prompt
+    // 404 might mean Private Repo (hidden) OR truly missing. 
+    // Usually unauth requests to private repo return 404 not 401 to prevent leakage.
+    throw error; 
   }
 }

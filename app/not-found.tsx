@@ -13,28 +13,35 @@ export default function NotFound() {
 
   useEffect(() => {
     // 1. Detect if this 404 is actually a Short Link
-    // Host: johnson1205.github.io
-    // Path: /short_url/1e
-    // Segments: ["", "short_url", "1e"]
     const path = window.location.pathname;
     const segments = path.split("/").filter(Boolean);
-    
-    // Check if the last segment is a potential code
-    // In local dev: /1e -> ["1e"] (if base path not applied strictly in dev)
-    // In prod: /short_url/1e -> ["short_url", "1e"]
-    
-    let potentialCode = segments[segments.length - 1]; // Take the last part
+    let potentialCode = segments[segments.length - 1]; 
 
-    // Validate simple alphanumeric
     if (potentialCode && /^[0-9a-zA-Z]+$/.test(potentialCode)) {
       setCode(potentialCode);
-      setNeedsToken(true);
-      setLoading(false); 
+      // OPTIMISTIC ATTEMPT: Try to fetch without token first (Public Repo Support)
+      attemptLookup(potentialCode, ""); 
     } else {
-      // Real 404
       setLoading(false);
     }
   }, []);
+
+  const attemptLookup = async (codeToUse: string, tokenToUse: string) => {
+    try {
+      let issueNumber = decode(codeToUse);
+      const originalUrl = await getURL(tokenToUse, issueNumber);
+      
+      if (originalUrl) {
+         window.location.href = originalUrl;
+         return;
+      }
+    } catch (e) {
+      // If failed (likely due to Private Repo or Rate Limit), we show the prompt
+      console.log("Optimistic lookup failed, requiring token.");
+      setNeedsToken(true);
+      setLoading(false);
+    }
+  };
 
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -42,29 +49,13 @@ export default function NotFound() {
 
     setLoading(true);
     setError("");
-
+    
+    // Explicit lookup with provided token
     try {
-      // Decode locally
-      let issueNumber;
-      try {
-        issueNumber = decode(code);
-      } catch {
-        throw new Error("Invalid code format");
-      }
-
-      // Fetch from GitHub directly (Client Side)
-      const originalUrl = await getURL(token, issueNumber);
-
-      if (!originalUrl) {
-        throw new Error("URL not found in database");
-      }
-
-      // Redirect
-      window.location.href = originalUrl;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to find URL");
-      setLoading(false);
+        await attemptLookup(code, token);
+    } catch(err: any) {
+         setError("Failed to access link. Check token or validity.");
+         setLoading(false);
     }
   };
 
