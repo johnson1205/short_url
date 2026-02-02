@@ -1,64 +1,139 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import clsx from "clsx";
+import { Link, Copy, ArrowRight, Loader2, Key } from "lucide-react";
+import { createIssue, encode } from "@/lib/github";
 
 export default function Home() {
+  const [url, setUrl] = useState("");
+  const [token, setToken] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleShorten = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setShortUrl("");
+
+    try {
+      if (!token) throw new Error("GitHub Token is required");
+      if (!url) throw new Error("URL is required");
+
+      const issueNumber = await createIssue(token, url);
+      const code = encode(issueNumber);
+      
+      // Construct full short URL
+      // For GitHub Pages, we need to know the base path AND the origin.
+      // But typically user just copies the link.
+      // window.location.origin = https://johnson1205.github.io
+      // basePath = /short_url
+      // Result = https://johnson1205.github.io/short_url/1e
+      
+      const origin = window.location.origin;
+      const basePath = "/short_url"; 
+      const finalUrl = `${origin}${basePath}/${code}`;
+
+      setShortUrl(finalUrl);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to create short link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shortUrl);
+    alert("Copied to clipboard!");
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="premium-bg flex items-center justify-center p-4">
+      <main className="glass-panel w-full max-w-lg p-8 rounded-2xl animate-fade-in">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
+            GitHub URL Shortener
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <p className="text-gray-400">Secure, serverless short links using GitHub Issues</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <form onSubmit={handleShorten} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+              <Key className="w-4 h-4" /> GitHub API Token
+            </label>
+            <input
+              type="password"
+              placeholder="Paste your standard `repo` scope token"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              className="input-field"
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <p className="text-xs text-gray-500">
+              Only used for this session to access the private repo.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+              <Link className="w-4 h-4" /> Long URL
+            </label>
+            <input
+              type="url"
+              placeholder="https://example.com/very/long/url..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="input-field"
+              required
+            />
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-red-500/20 text-red-200 text-sm border border-red-500/30">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || !token || !url}
+            className="btn-primary flex items-center justify-center gap-2"
           >
-            Documentation
-          </a>
-        </div>
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Shorten URL"}
+            {!loading && <ArrowRight className="w-5 h-5" />}
+          </button>
+        </form>
+
+        {shortUrl && (
+          <div className="mt-8 pt-8 border-t border-white/10">
+            <label className="text-sm font-medium text-gray-300 mb-2 block">
+              Your Short Link
+            </label>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={shortUrl}
+                className="input-field text-center font-mono text-blue-300"
+              />
+              <button
+                onClick={copyToClipboard}
+                className="p-3 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white"
+                title="Copy"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="mt-4 text-center">
+                <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 underline">
+                    Test Link (Opens in new tab)
+                </a>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
